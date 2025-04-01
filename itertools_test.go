@@ -8,19 +8,6 @@ import (
 	"testing"
 )
 
-func unwrapIterator[V any](iter iter.Seq[V], limit int) []V {
-	i := 0
-	res := make([]V, 0, limit)
-	for item := range iter {
-		if i >= limit {
-			break
-		}
-		res = append(res, item)
-		i++
-	}
-	return res
-}
-
 func unwrapIterator2[K, V any](iter iter.Seq2[K, V], limit int) ([]K, []V) {
 	i := 0
 	keys := make([]K, 0, limit)
@@ -87,7 +74,7 @@ func TestCount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			count := Count(tt.args.start, tt.args.step)
-			if got := unwrapIterator(count, tt.limit); !reflect.DeepEqual(got, tt.want) {
+			if got := slices.Collect(Limit(count, tt.limit)); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Count() = %v, want %v", got, tt.want)
 			}
 		})
@@ -125,7 +112,7 @@ func TestCycle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cycle := Cycle(tt.args.iter)
-			if got := unwrapIterator(cycle, tt.limit); !reflect.DeepEqual(got, tt.want) {
+			if got := slices.Collect(Limit(cycle, tt.limit)); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Cycle() = %v, want %v", got, tt.want)
 			}
 		})
@@ -165,6 +152,33 @@ func TestCycle2(t *testing.T) {
 
 			if got := gotValues; !reflect.DeepEqual(got, tt.wantValues) {
 				t.Errorf("Cycle2() = %v, want %v", got, tt.wantValues)
+			}
+		})
+	}
+}
+
+func TestRepeat(t *testing.T) {
+	type args struct {
+		elem int
+		n    int
+	}
+	type testCase struct {
+		name string
+		args args
+		want []int
+	}
+	tests := []testCase{
+		{
+			name: "2 for 5 times",
+			args: args{2, 5},
+			want: []int{2, 2, 2, 2, 2},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			rep := Repeat(tt.args.elem, tt.args.n)
+			if got := slices.Collect(rep); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Repeat() = %v, want %v", got, tt.want)
 			}
 		})
 	}
