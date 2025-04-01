@@ -4,6 +4,16 @@ import (
 	"iter"
 )
 
+func FromElements[V any](elems ...V) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for _, v := range elems {
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
 func Count(start, step int) iter.Seq[int] {
 	return func(yield func(int) bool) {
 		cur := start
@@ -176,11 +186,11 @@ func Slice2[K, V any](iter iter.Seq2[K, V], start, stop, step int) iter.Seq2[K, 
 	}
 }
 
-func Limit[V any](iter iter.Seq[V], limit int) iter.Seq[V] {
+func Take[V any](iter iter.Seq[V], limit int) iter.Seq[V] {
 	return Slice(iter, 0, limit, 1)
 }
 
-func Limit2[K, V any](iter iter.Seq2[K, V], limit int) iter.Seq2[K, V] {
+func Take2[K, V any](iter iter.Seq2[K, V], limit int) iter.Seq2[K, V] {
 	return Slice2(iter, 0, limit, 1)
 }
 

@@ -73,7 +73,7 @@ func TestCount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			count := Count(tt.args.start, tt.args.step)
-			if got := slices.Collect(Limit(count, tt.limit)); !reflect.DeepEqual(got, tt.want) {
+			if got := slices.Collect(Take(count, tt.limit)); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Count() = %v, want %v", got, tt.want)
 			}
 		})
@@ -94,7 +94,7 @@ func TestCycle(t *testing.T) {
 		{
 			name: "[1, 2, 3] cycle",
 			args: args[int]{
-				slices.Values([]int{1, 2, 3}),
+				FromElements(1, 2, 3),
 			},
 			limit: 9,
 			want:  []int{1, 2, 3, 1, 2, 3, 1, 2, 3},
@@ -102,7 +102,7 @@ func TestCycle(t *testing.T) {
 		{
 			name: "[-10, 0] cycle",
 			args: args[int]{
-				slices.Values([]int{-10, 0}),
+				FromElements(-10, 0),
 			},
 			limit: 5,
 			want:  []int{-10, 0, -10, 0, -10},
@@ -111,7 +111,7 @@ func TestCycle(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cycle := Cycle(tt.args.iter)
-			if got := slices.Collect(Limit(cycle, tt.limit)); !reflect.DeepEqual(got, tt.want) {
+			if got := slices.Collect(Take(cycle, tt.limit)); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Cycle() = %v, want %v", got, tt.want)
 			}
 		})
@@ -131,9 +131,9 @@ func TestCycle2(t *testing.T) {
 	}
 	tests := []testCase{
 		{
-			name: "map cycle",
+			name: "zip cycle",
 			args: args[int, string]{
-				Zip(slices.Values([]int{2, 4, 6}), slices.Values([]string{"a", "b", "c"})),
+				Zip(FromElements(2, 4, 6), FromElements("a", "b", "c")),
 			},
 			limit:      9,
 			wantKeys:   []int{2, 4, 6, 2, 4, 6, 2, 4, 6},
@@ -196,24 +196,24 @@ func TestChain(t *testing.T) {
 		{
 			name: "chain of one",
 			args: args{[]iter.Seq[int]{
-				slices.Values([]int{1, 2, 3}),
+				FromElements(1, 2, 3),
 			}},
 			want: []int{1, 2, 3},
 		},
 		{
 			name: "chain of two",
 			args: args{[]iter.Seq[int]{
-				slices.Values([]int{1, 2, 3}),
-				slices.Values([]int{4, 5, 6}),
+				FromElements(1, 2, 3),
+				FromElements(4, 5, 6),
 			}},
 			want: []int{1, 2, 3, 4, 5, 6},
 		},
 		{
 			name: "chain with unequal sizes",
 			args: args{[]iter.Seq[int]{
-				slices.Values([]int{1, 2, 3}),
-				slices.Values([]int{4, 5}),
-				slices.Values([]int{6}),
+				FromElements(1, 2, 3),
+				FromElements(4, 5),
+				FromElements(6),
 			}},
 			want: []int{1, 2, 3, 4, 5, 6},
 		},
@@ -243,8 +243,8 @@ func TestZip(t *testing.T) {
 		{
 			name: "equal length",
 			args: args{
-				first:  slices.Values([]int{1, 2, 3, 4, 5}),
-				second: slices.Values([]int{6, 7, 8, 9, 10}),
+				first:  FromElements(1, 2, 3, 4, 5),
+				second: FromElements(6, 7, 8, 9, 10),
 			},
 			wantKeys:   []int{1, 2, 3, 4, 5},
 			wantValues: []int{6, 7, 8, 9, 10},
@@ -252,8 +252,8 @@ func TestZip(t *testing.T) {
 		{
 			name: "unequal length",
 			args: args{
-				first:  slices.Values([]int{1, 2, 3}),
-				second: slices.Values([]int{6, 7, 8, 9, 10}),
+				first:  FromElements(1, 2, 3),
+				second: FromElements(6, 7, 8, 9, 10),
 			},
 			wantKeys:   []int{1, 2, 3},
 			wantValues: []int{6, 7, 8},
@@ -261,8 +261,8 @@ func TestZip(t *testing.T) {
 		{
 			name: "empty",
 			args: args{
-				first:  slices.Values([]int{}),
-				second: slices.Values([]int{6, 7, 8, 9, 10}),
+				first:  FromElements[int](),
+				second: FromElements(6, 7, 8, 9, 10),
 			},
 			wantKeys:   []int{},
 			wantValues: []int{},
@@ -299,7 +299,7 @@ func TestSlice(t *testing.T) {
 		{
 			name: "simple",
 			args: args{
-				iter:  slices.Values([]int{1, 2, 3, 4, 5}),
+				iter:  FromElements(1, 2, 3, 4, 5),
 				start: 0,
 				stop:  5,
 				step:  1,
@@ -309,7 +309,7 @@ func TestSlice(t *testing.T) {
 		{
 			name: "step 2",
 			args: args{
-				iter:  slices.Values([]int{1, 2, 3, 4, 5}),
+				iter:  FromElements(1, 2, 3, 4, 5),
 				start: 0,
 				stop:  5,
 				step:  2,
@@ -319,7 +319,7 @@ func TestSlice(t *testing.T) {
 		{
 			name: "start 2, stop 8",
 			args: args{
-				iter:  slices.Values([]int{1, 2, 3, 4, 5}),
+				iter:  FromElements(1, 2, 3, 4, 5),
 				start: 2,
 				stop:  4,
 				step:  1,
@@ -329,7 +329,7 @@ func TestSlice(t *testing.T) {
 		{
 			name: "start 2, stop 8, step 2",
 			args: args{
-				iter:  slices.Values([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}),
+				iter:  FromElements(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
 				start: 2,
 				stop:  8,
 				step:  2,
@@ -364,7 +364,7 @@ func TestTakeWhile(t *testing.T) {
 				predicate: func(i int) bool {
 					return i < 4
 				},
-				iter: slices.Values([]int{1, 2, 3, 4, 5}),
+				iter: FromElements(1, 2, 3, 4, 5),
 			},
 			want: []int{1, 2, 3},
 		},
@@ -374,7 +374,7 @@ func TestTakeWhile(t *testing.T) {
 				predicate: func(i int) bool {
 					return i%2 == 0
 				},
-				iter: slices.Values([]int{2, 2, 3, 4, 5}),
+				iter: FromElements(2, 2, 3, 4, 5),
 			},
 			want: []int{2, 2},
 		},
@@ -406,7 +406,7 @@ func TestDropWhile(t *testing.T) {
 				predicate: func(i int) bool {
 					return i < 3
 				},
-				iter: slices.Values([]int{1, 2, 3, 4, 5}),
+				iter: FromElements(1, 2, 3, 4, 5),
 			},
 			want: []int{3, 4, 5},
 		},
