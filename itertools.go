@@ -50,6 +50,30 @@ func Repeat[V any](elem V, n int) iter.Seq[V] {
 	}
 }
 
+func Chain[V any](iters ...iter.Seq[V]) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for _, it := range iters {
+			for v := range it {
+				if !yield(v) {
+					return
+				}
+			}
+		}
+	}
+}
+
+func Chain2[K, V any](iters ...iter.Seq2[K, V]) iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for _, it := range iters {
+			for k, v := range it {
+				if !yield(k, v) {
+					return
+				}
+			}
+		}
+	}
+}
+
 func Zip[K, V any](first iter.Seq[K], second iter.Seq[V]) iter.Seq2[K, V] {
 	return func(yield func(K, V) bool) {
 		ch1 := make(chan K)
@@ -110,10 +134,10 @@ func Zip[K, V any](first iter.Seq[K], second iter.Seq[V]) iter.Seq2[K, V] {
 	}
 }
 
-const slicePanicMessage = "itertools: all int arguments must be non-negative"
+const slicePanicMessage = "itertools: step argument can't be negative"
 
 func Slice[V any](iter iter.Seq[V], start, stop, step int) iter.Seq[V] {
-	if start < 0 || stop < 0 || step < 0 {
+	if step < 0 {
 		panic(slicePanicMessage)
 	}
 	return func(yield func(V) bool) {
@@ -133,7 +157,7 @@ func Slice[V any](iter iter.Seq[V], start, stop, step int) iter.Seq[V] {
 }
 
 func Slice2[K, V any](iter iter.Seq2[K, V], start, stop, step int) iter.Seq2[K, V] {
-	if start < 0 || stop < 0 || step < 0 {
+	if step < 0 {
 		panic(slicePanicMessage)
 	}
 	return func(yield func(K, V) bool) {
@@ -153,13 +177,9 @@ func Slice2[K, V any](iter iter.Seq2[K, V], start, stop, step int) iter.Seq2[K, 
 }
 
 func Limit[V any](iter iter.Seq[V], limit int) iter.Seq[V] {
-	return func(yield func(V) bool) {
-		i := 0
-		for v := range iter {
-			i++
-			if !yield(v) || i >= limit {
-				return
-			}
-		}
-	}
+	return Slice(iter, 0, limit, 1)
+}
+
+func Limit2[K, V any](iter iter.Seq2[K, V], limit int) iter.Seq2[K, V] {
+	return Slice2(iter, 0, limit, 1)
 }

@@ -1,3 +1,3 @@
-module go-itertools
+module itertools
 
 go 1.24

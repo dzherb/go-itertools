@@ -183,6 +183,51 @@ func TestRepeat(t *testing.T) {
 	}
 }
 
+func TestChain(t *testing.T) {
+	type args struct {
+		iters []iter.Seq[int]
+	}
+	type testCase struct {
+		name string
+		args args
+		want []int
+	}
+	tests := []testCase{
+		{
+			name: "chain of one",
+			args: args{[]iter.Seq[int]{
+				slices.Values([]int{1, 2, 3}),
+			}},
+			want: []int{1, 2, 3},
+		},
+		{
+			name: "chain of two",
+			args: args{[]iter.Seq[int]{
+				slices.Values([]int{1, 2, 3}),
+				slices.Values([]int{4, 5, 6}),
+			}},
+			want: []int{1, 2, 3, 4, 5, 6},
+		},
+		{
+			name: "chain with unequal sizes",
+			args: args{[]iter.Seq[int]{
+				slices.Values([]int{1, 2, 3}),
+				slices.Values([]int{4, 5}),
+				slices.Values([]int{6}),
+			}},
+			want: []int{1, 2, 3, 4, 5, 6},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			chain := Chain(tt.args.iters...)
+			if got := slices.Collect(chain); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Chain() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestZip(t *testing.T) {
 	type args struct {
 		first  iter.Seq[int]
@@ -212,6 +257,15 @@ func TestZip(t *testing.T) {
 			},
 			wantKeys:   []int{1, 2, 3},
 			wantValues: []int{6, 7, 8},
+		},
+		{
+			name: "empty",
+			args: args{
+				first:  slices.Values([]int{}),
+				second: slices.Values([]int{6, 7, 8, 9, 10}),
+			},
+			wantKeys:   []int{},
+			wantValues: []int{},
 		},
 	}
 	for _, tt := range tests {
