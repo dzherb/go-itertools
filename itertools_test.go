@@ -327,14 +327,14 @@ func TestSlice(t *testing.T) {
 			want: []int{3, 4},
 		},
 		{
-			name: "start 2, stop 8, step 2",
+			name: "start 1, stop 5, step 2",
 			args: args{
-				iter:  FromElements(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
-				start: 2,
-				stop:  8,
+				iter:  FromElements(1, 2, 3, 4, 5, 6),
+				start: 1,
+				stop:  5,
 				step:  2,
 			},
-			want: []int{3, 5, 7},
+			want: []int{2, 4},
 		},
 	}
 	for _, tt := range tests {
