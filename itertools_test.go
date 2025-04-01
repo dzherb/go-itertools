@@ -346,3 +346,77 @@ func TestSlice(t *testing.T) {
 		})
 	}
 }
+
+func TestTakeWhile(t *testing.T) {
+	type args struct {
+		predicate func(int) bool
+		iter      iter.Seq[int]
+	}
+	type testCase struct {
+		name string
+		args args
+		want []int
+	}
+	tests := []testCase{
+		{
+			name: "< 4",
+			args: args{
+				predicate: func(i int) bool {
+					return i < 4
+				},
+				iter: slices.Values([]int{1, 2, 3, 4, 5}),
+			},
+			want: []int{1, 2, 3},
+		},
+		{
+			name: "mod 2",
+			args: args{
+				predicate: func(i int) bool {
+					return i%2 == 0
+				},
+				iter: slices.Values([]int{2, 2, 3, 4, 5}),
+			},
+			want: []int{2, 2},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tw := TakeWhile(tt.args.predicate, tt.args.iter)
+			if got := slices.Collect(tw); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TakeWhile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestDropWhile(t *testing.T) {
+	type args struct {
+		predicate func(int) bool
+		iter      iter.Seq[int]
+	}
+	type testCase struct {
+		name string
+		args args
+		want []int
+	}
+	tests := []testCase{
+		{
+			name: "< 3",
+			args: args{
+				predicate: func(i int) bool {
+					return i < 3
+				},
+				iter: slices.Values([]int{1, 2, 3, 4, 5}),
+			},
+			want: []int{3, 4, 5},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			dw := DropWhile(tt.args.predicate, tt.args.iter)
+			if got := slices.Collect(dw); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("DropWhile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

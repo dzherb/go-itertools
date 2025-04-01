@@ -183,3 +183,28 @@ func Limit[V any](iter iter.Seq[V], limit int) iter.Seq[V] {
 func Limit2[K, V any](iter iter.Seq2[K, V], limit int) iter.Seq2[K, V] {
 	return Slice2(iter, 0, limit, 1)
 }
+
+func TakeWhile[V any](predicate func(V) bool, iter iter.Seq[V]) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for v := range iter {
+			if !predicate(v) || !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+func DropWhile[V any](predicate func(V) bool, iter iter.Seq[V]) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		skip := true
+		iter(func(v V) bool {
+			if skip {
+				if predicate(v) {
+					return true
+				}
+				skip = false
+			}
+			return yield(v)
+		})
+	}
+}
