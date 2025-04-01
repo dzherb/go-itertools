@@ -2,7 +2,6 @@ package itertools
 
 import (
 	"iter"
-	"maps"
 	"reflect"
 	"slices"
 	"testing"
@@ -134,7 +133,7 @@ func TestCycle2(t *testing.T) {
 		{
 			name: "map cycle",
 			args: args[int, string]{
-				maps.All(map[int]string{2: "a", 4: "b", 6: "c"}),
+				Zip(slices.Values([]int{2, 4, 6}), slices.Values([]string{"a", "b", "c"})),
 			},
 			limit:      9,
 			wantKeys:   []int{2, 4, 6, 2, 4, 6, 2, 4, 6},
@@ -179,6 +178,116 @@ func TestRepeat(t *testing.T) {
 			rep := Repeat(tt.args.elem, tt.args.n)
 			if got := slices.Collect(rep); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Repeat() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestZip(t *testing.T) {
+	type args struct {
+		first  iter.Seq[int]
+		second iter.Seq[int]
+	}
+	type testCase struct {
+		name       string
+		args       args
+		wantKeys   []int
+		wantValues []int
+	}
+	tests := []testCase{
+		{
+			name: "equal length",
+			args: args{
+				first:  slices.Values([]int{1, 2, 3, 4, 5}),
+				second: slices.Values([]int{6, 7, 8, 9, 10}),
+			},
+			wantKeys:   []int{1, 2, 3, 4, 5},
+			wantValues: []int{6, 7, 8, 9, 10},
+		},
+		{
+			name: "unequal length",
+			args: args{
+				first:  slices.Values([]int{1, 2, 3}),
+				second: slices.Values([]int{6, 7, 8, 9, 10}),
+			},
+			wantKeys:   []int{1, 2, 3},
+			wantValues: []int{6, 7, 8},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			zip := Zip(tt.args.first, tt.args.second)
+			keys, val := unwrapIterator2(zip, 5)
+			if !reflect.DeepEqual(keys, tt.wantKeys) {
+				t.Errorf("Zip() = %v, want keys %v", keys, tt.wantKeys)
+			}
+
+			if !reflect.DeepEqual(val, tt.wantValues) {
+				t.Errorf("Zip() = %v, want values %v", val, tt.wantValues)
+			}
+		})
+	}
+}
+
+func TestSlice(t *testing.T) {
+	type args struct {
+		iter  iter.Seq[int]
+		start int
+		stop  int
+		step  int
+	}
+	type testCase struct {
+		name string
+		args args
+		want []int
+	}
+	tests := []testCase{
+		{
+			name: "simple",
+			args: args{
+				iter:  slices.Values([]int{1, 2, 3, 4, 5}),
+				start: 0,
+				stop:  5,
+				step:  1,
+			},
+			want: []int{1, 2, 3, 4, 5},
+		},
+		{
+			name: "step 2",
+			args: args{
+				iter:  slices.Values([]int{1, 2, 3, 4, 5}),
+				start: 0,
+				stop:  5,
+				step:  2,
+			},
+			want: []int{1, 3, 5},
+		},
+		{
+			name: "start 2, stop 8",
+			args: args{
+				iter:  slices.Values([]int{1, 2, 3, 4, 5}),
+				start: 2,
+				stop:  4,
+				step:  1,
+			},
+			want: []int{3, 4},
+		},
+		{
+			name: "start 2, stop 8, step 2",
+			args: args{
+				iter:  slices.Values([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}),
+				start: 2,
+				stop:  8,
+				step:  2,
+			},
+			want: []int{3, 5, 7},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			slice := Slice(tt.args.iter, tt.args.start, tt.args.stop, tt.args.step)
+			if got := slices.Collect(slice); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Slice() = %v, want %v", got, tt.want)
 			}
 		})
 	}
