@@ -3,6 +3,7 @@ package stream
 import (
 	it "github.com/dzherb/go-itertools"
 	"iter"
+	"slices"
 )
 
 type Stream[V any] iter.Seq[V]
@@ -17,6 +18,10 @@ func FromElements[V any](elems ...V) Stream[V] {
 
 func (s Stream[V]) Iterator() iter.Seq[V] {
 	return iter.Seq[V](s)
+}
+
+func (s Stream[V]) Collect() []V {
+	return slices.Collect(s.Iterator())
 }
 
 func (s Stream[V]) Slice(start, stop, step int) Stream[V] {
@@ -45,4 +50,8 @@ func (s Stream[V]) Map(mapper func(V) V) Stream[V] {
 
 func MapStream[V, R any](s Stream[V], mapper func(V) R) Stream[R] {
 	return FromIterator(it.Map(s.Iterator(), mapper))
+}
+
+func (s Stream[V]) ForEach(consumer func(V)) {
+	it.ForEach(s.Iterator(), consumer)
 }

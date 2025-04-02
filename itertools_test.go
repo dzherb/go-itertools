@@ -481,3 +481,29 @@ func TestMap(t *testing.T) {
 		})
 	}
 }
+
+func TestOnce(t *testing.T) {
+	seq := Once(FromElements(1, 2, 3))
+
+	// First iteration should work without issues
+	var result []int
+	for v := range seq {
+		result = append(result, v)
+	}
+
+	expected := []int{1, 2, 3}
+	if len(result) != len(expected) {
+		t.Errorf("Once() = %v, want %v", expected, result)
+	}
+
+	// Second iteration should panic
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("Expected panic, but did not get one")
+		}
+	}()
+
+	for v := range seq {
+		t.Errorf("Iterator should have panicked before reaching value: %v", v)
+	}
+}

@@ -2,6 +2,7 @@ package itertools
 
 import (
 	"iter"
+	"sync"
 )
 
 // FromElements creates an iterator from a fixed list of elements.
@@ -412,6 +413,55 @@ func Map[V, R any](iter iter.Seq[V], mapper func(V) R) iter.Seq[R] {
 	return func(yield func(R) bool) {
 		for v := range iter {
 			if !yield(mapper(v)) {
+				return
+			}
+		}
+	}
+}
+
+// ForEach iterates over the elements of `iter`,
+// applying the provided `consumer` function to each element.
+//
+// Example:
+//
+//	iter := FromElements(1, 2, 3, 4)
+//	ForEach(iter, func(v int) {
+//		fmt.Println(v)  // Output: 1, 2, 3, 4
+//	})
+func ForEach[V any](iter iter.Seq[V], consumer func(V)) {
+	for v := range iter {
+		consumer(v)
+	}
+}
+
+// Once ensures that the given iterator can only be consumed once.
+// It panics if an attempt to iterate over the sequence a second time is made.
+//
+// Example:
+//
+//	iter := Once(FromElements(1, 2, 3))
+//	for v := range iter {
+//		fmt.Println(v) // 1, 2, 3
+//	}
+//
+//	// Attempting to iterate again will cause a panic:
+//	// for v := range iter {
+//	//	 fmt.Println(v) // panic
+//	// }
+func Once[V any](iter iter.Seq[V]) iter.Seq[V] {
+	mu := &sync.Mutex{}
+	consumed := false
+	return func(yield func(V) bool) {
+		mu.Lock()
+		if consumed {
+			mu.Unlock()
+			panic("itertools: iterator can only be consumed once")
+		}
+		consumed = true
+		mu.Unlock()
+
+		for v := range iter {
+			if !yield(v) {
 				return
 			}
 		}
