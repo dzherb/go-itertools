@@ -341,7 +341,7 @@ func Take2[K, V any](iter iter.Seq2[K, V], n int) iter.Seq2[K, V] {
 //	for v := range taken {
 //		fmt.Println(v) // Output: 1, 2, 3
 //	}
-func TakeWhile[V any](predicate func(V) bool, iter iter.Seq[V]) iter.Seq[V] {
+func TakeWhile[V any](iter iter.Seq[V], predicate func(V) bool) iter.Seq[V] {
 	return func(yield func(V) bool) {
 		for v := range iter {
 			if !predicate(v) || !yield(v) {
@@ -363,7 +363,7 @@ func TakeWhile[V any](predicate func(V) bool, iter iter.Seq[V]) iter.Seq[V] {
 //	for v := range dropped {
 //		fmt.Println(v) // Output: 3, 4, 5
 //	}
-func DropWhile[V any](predicate func(V) bool, iter iter.Seq[V]) iter.Seq[V] {
+func DropWhile[V any](iter iter.Seq[V], predicate func(V) bool) iter.Seq[V] {
 	return func(yield func(V) bool) {
 		skip := true
 		iter(func(v V) bool {
@@ -375,5 +375,25 @@ func DropWhile[V any](predicate func(V) bool, iter iter.Seq[V]) iter.Seq[V] {
 			}
 			return yield(v)
 		})
+	}
+}
+
+func Filter[V any](iter iter.Seq[V], predicate func(V) bool) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for v := range iter {
+			if predicate(v) && !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+func Map[V, R any](iter iter.Seq[V], mapper func(V) R) iter.Seq[R] {
+	return func(yield func(R) bool) {
+		for v := range iter {
+			if !yield(mapper(v)) {
+				return
+			}
+		}
 	}
 }

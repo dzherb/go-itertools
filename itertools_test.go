@@ -4,6 +4,7 @@ import (
 	"iter"
 	"reflect"
 	"slices"
+	"strconv"
 	"testing"
 )
 
@@ -381,7 +382,7 @@ func TestTakeWhile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tw := TakeWhile(tt.args.predicate, tt.args.iter)
+			tw := TakeWhile(tt.args.iter, tt.args.predicate)
 			if got := slices.Collect(tw); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("TakeWhile() = %v, want %v", got, tt.want)
 			}
@@ -413,9 +414,69 @@ func TestDropWhile(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			dw := DropWhile(tt.args.predicate, tt.args.iter)
+			dw := DropWhile(tt.args.iter, tt.args.predicate)
 			if got := slices.Collect(dw); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("DropWhile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestFilter(t *testing.T) {
+	type args struct {
+		iter      iter.Seq[int]
+		predicate func(int) bool
+	}
+	type testCase struct {
+		name string
+		args args
+		want []int
+	}
+	tests := []testCase{
+		{
+			name: "simple",
+			args: args{
+				iter:      FromElements(1, 2, 3, 4, 5),
+				predicate: func(i int) bool { return i%2 == 0 },
+			},
+			want: []int{2, 4},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			f := Filter(tt.args.iter, tt.args.predicate)
+			if got := slices.Collect(f); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Filter() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestMap(t *testing.T) {
+	type args struct {
+		iter   iter.Seq[int]
+		mapper func(int) string
+	}
+	type testCase struct {
+		name string
+		args args
+		want []string
+	}
+	tests := []testCase{
+		{
+			name: "simple",
+			args: args{
+				iter:   FromElements(1, 2, 3, 4, 5),
+				mapper: func(i int) string { return strconv.Itoa(i) },
+			},
+			want: []string{"1", "2", "3", "4", "5"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := Map(tt.args.iter, tt.args.mapper)
+			if got := slices.Collect(m); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Filter() = %v, want %v", got, tt.want)
 			}
 		})
 	}
