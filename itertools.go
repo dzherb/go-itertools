@@ -378,6 +378,16 @@ func DropWhile[V any](iter iter.Seq[V], predicate func(V) bool) iter.Seq[V] {
 	}
 }
 
+// Filter returns a new sequence containing only the elements from `iter`
+// for which the predicate `predicate` returns true.
+//
+// Example:
+//
+//	numbers := FromElements(1, 2, 3, 4, 5)
+//	evenNumbers := Filter(numbers, func(n int) bool { return n%2 == 0 })
+//	for v := range evenNumbers {
+//		fmt.Println(v) // 2, 4
+//	}
 func Filter[V any](iter iter.Seq[V], predicate func(V) bool) iter.Seq[V] {
 	return func(yield func(V) bool) {
 		for v := range iter {
@@ -388,6 +398,16 @@ func Filter[V any](iter iter.Seq[V], predicate func(V) bool) iter.Seq[V] {
 	}
 }
 
+// Map returns a new sequence where each element from `iter`
+// is transformed using the `mapper` function.
+//
+// Example:
+//
+//	numbers := FromElements(1, 2, 3)
+//	squared := Map(numbers, func(n int) int { return n * n })
+//	for v := range squared {
+//		fmt.Println(v) // 1, 4, 9
+//	}
 func Map[V, R any](iter iter.Seq[V], mapper func(V) R) iter.Seq[R] {
 	return func(yield func(R) bool) {
 		for v := range iter {
