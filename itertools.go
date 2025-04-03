@@ -41,6 +41,36 @@ func FromPairs[V any](pairs [][2]V) iter.Seq2[V, V] {
 	}
 }
 
+func FromChan[V any](ch chan V) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for v := range ch {
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+func Keys[K, V any](iter iter.Seq2[K, V]) iter.Seq[K] {
+	return func(yield func(K) bool) {
+		for k, _ := range iter {
+			if !yield(k) {
+				return
+			}
+		}
+	}
+}
+
+func Values[K, V any](iter iter.Seq2[K, V]) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for _, v := range iter {
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
 // Count returns an infinite sequence of numbers starting from `start`, incremented by `step`.
 //
 // Example:
@@ -464,6 +494,19 @@ func Once[V any](iter iter.Seq[V]) iter.Seq[V] {
 			if !yield(v) {
 				return
 			}
+		}
+	}
+}
+
+func Enumerate[V any](iter iter.Seq[V]) iter.Seq2[int, V] {
+	// return Zip(Count(0, 1), iter)
+	return func(yield func(int, V) bool) {
+		i := 0
+		for v := range iter {
+			if !yield(i, v) {
+				return
+			}
+			i++
 		}
 	}
 }

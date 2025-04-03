@@ -507,3 +507,39 @@ func TestOnce(t *testing.T) {
 		t.Errorf("Iterator should have panicked before reaching value: %v", v)
 	}
 }
+
+func TestEnumerate(t *testing.T) {
+	type args struct {
+		iter iter.Seq[string]
+	}
+	type testCase struct {
+		name     string
+		args     args
+		wantKeys []int
+		wantVals []string
+	}
+	tests := []testCase{
+		{
+			name: "simple",
+			args: args{
+				iter: FromElements("a", "b", "v"),
+			},
+			wantKeys: []int{0, 1, 2},
+			wantVals: []string{"a", "b", "v"},
+		},
+	}
+	for _, tt := range tests {
+		keys, val := unwrapIterator2(Enumerate(tt.args.iter), 3)
+		t.Run(tt.name, func(t *testing.T) {
+			if !reflect.DeepEqual(keys, tt.wantKeys) {
+				t.Errorf("Enumerate() = %v, want keys %v", keys, tt.wantKeys)
+			}
+		})
+
+		t.Run(tt.name, func(t *testing.T) {
+			if !reflect.DeepEqual(val, tt.wantVals) {
+				t.Errorf("Enumerate() = %v, want keys %v", val, tt.wantVals)
+			}
+		})
+	}
+}
