@@ -41,7 +41,22 @@ func FromPairs[V any](pairs [][2]V) iter.Seq2[V, V] {
 	}
 }
 
-func FromChan[V any](ch chan V) iter.Seq[V] {
+// FromChan creates an iterator from a read-only channel.
+//
+// Example:
+//
+//	 ch := make(chan int)
+//	 go func() {
+//	     for i := 0; i < 5; i++ {
+//	         ch <- i
+//	     }
+//	     close(ch)
+//	 }()
+//	 seq := FromChan(ch)
+//		for v := seq pairs {
+//		    fmt.Println(k, v) // 1, 2, 3, 4, 5
+//		}
+func FromChan[V any](ch <-chan V) iter.Seq[V] {
 	return func(yield func(V) bool) {
 		for v := range ch {
 			if !yield(v) {
@@ -51,6 +66,14 @@ func FromChan[V any](ch chan V) iter.Seq[V] {
 	}
 }
 
+// Keys extracts the keys from a key-value sequence.
+//
+// Example:
+//
+//	seq := maps.All(map[string]int{"a": 1, "b": 2, "c": 3})
+//	for k := range Keys(seq) {
+//	    fmt.Println(k, v) // "a", "b", "c"
+//	}
 func Keys[K, V any](iter iter.Seq2[K, V]) iter.Seq[K] {
 	return func(yield func(K) bool) {
 		for k, _ := range iter {
@@ -61,6 +84,14 @@ func Keys[K, V any](iter iter.Seq2[K, V]) iter.Seq[K] {
 	}
 }
 
+// Values extracts the values from a key-value sequence.
+//
+// Example:
+//
+//	seq := maps.All(map[string]int{"a": 1, "b": 2, "c": 3})
+//	for v := range Values(seq) {
+//	    fmt.Println(k, v) // 1, 2, 3
+//	}
 func Values[K, V any](iter iter.Seq2[K, V]) iter.Seq[V] {
 	return func(yield func(V) bool) {
 		for _, v := range iter {

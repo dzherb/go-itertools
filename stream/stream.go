@@ -16,6 +16,10 @@ func FromElements[V any](elems ...V) Stream[V] {
 	return FromIterator(it.FromElements(elems...))
 }
 
+func FromChan[V any](ch <-chan V) Stream[V] {
+	return FromIterator(it.FromChan(ch))
+}
+
 func (s Stream[V]) Iterator() iter.Seq[V] {
 	return iter.Seq[V](s)
 }
