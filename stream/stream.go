@@ -52,7 +52,13 @@ func (s Stream[V]) Map(mapper func(V) V) Stream[V] {
 	return FromIterator(it.Map[V](s.Iterator(), mapper))
 }
 
-func MapStream[V, R any](s Stream[V], mapper func(V) R) Stream[R] {
+// Map applies a transformation function to each element of a stream,
+// producing a new stream of the result type.
+//
+// Since Go currently does not support type parameters in methods,
+// we need a standalone generic function to allow
+// mapping from one stream type to another.
+func Map[V, R any](s Stream[V], mapper func(V) R) Stream[R] {
 	return FromIterator(it.Map(s.Iterator(), mapper))
 }
 

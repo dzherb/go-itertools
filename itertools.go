@@ -529,8 +529,18 @@ func Once[V any](iter iter.Seq[V]) iter.Seq[V] {
 	}
 }
 
+// Enumerate returns a sequence of pairs (index, value) from the given sequence.
+//
+// It is functionally equivalent to Zip(Count(0, 1), iter),
+// but implemented more efficiently.
+//
+// Example:
+//
+//	seq := Enumerate(FromElements("a", "b", "c"))
+//	for i, v := range seq {
+//		fmt.Println(i, v) // 0 "a", 1 "b", 2 "c"
+//	}
 func Enumerate[V any](iter iter.Seq[V]) iter.Seq2[int, V] {
-	// return Zip(Count(0, 1), iter)
 	return func(yield func(int, V) bool) {
 		i := 0
 		for v := range iter {
