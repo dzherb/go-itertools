@@ -1,4 +1,6 @@
 # Miscellaneous utils for iteration
+[![Go Reference](https://pkg.go.dev/badge/github.com/dzherb/go-itertools.svg)](https://pkg.go.dev/github.com/dzherb/go-itertools)
+
 
 `go-itertools` is a versatile library inspired by Python's [itertools](https://docs.python.org/3/library/itertools.html), designed to provide elegant and flexible utilities for working with sequences in Go. It offers a wide variety of functions to help you manipulate, combine, and transform iterators in a simple and efficient way.
 
