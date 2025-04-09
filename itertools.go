@@ -551,3 +551,60 @@ func Enumerate[V any](iter iter.Seq[V]) iter.Seq2[int, V] {
 		}
 	}
 }
+
+func Chunks[V any](seq iter.Seq[V], chunkSize int) iter.Seq[[]V] {
+	return func(yield func([]V) bool) {
+		chunk := make([]V, 0, chunkSize)
+
+		for v := range seq {
+			chunk = append(chunk, v)
+			if len(chunk) != chunkSize {
+				continue
+			}
+			if !yield(append([]V(nil), chunk...)) {
+				return
+			}
+			chunk = chunk[:0]
+		}
+
+		if len(chunk) > 0 {
+			if !yield(chunk) {
+				return
+			}
+		}
+	}
+}
+
+func ChunksLazy[V any](seq iter.Seq[V], chunkSize int) iter.Seq[iter.Seq[V]] {
+	return func(yield func(iter.Seq[V]) bool) {
+		next, stop := iter.Pull(seq)
+		defer stop()
+
+		for {
+			exit := false
+			var i int
+
+			ok := yield(func(yield func(V) bool) {
+				for i = range chunkSize {
+					v, ok := next()
+					if !ok || !yield(v) {
+						exit = !ok
+						return
+					}
+				}
+			})
+
+			if !ok || exit {
+				return
+			}
+
+			// skip to the next chunk if, for example,
+			// the previous chunk was interrupted by break, continue or return
+			for i++; i < chunkSize; i++ {
+				if _, ok := next(); !ok {
+					return
+				}
+			}
+		}
+	}
+}
